@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: oms-postgres
+    environment:
+      POSTGRES_DB: oms_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  oms:
+    build: .
+    container_name: oms-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: oms_database
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      PORT: 3000
+      NODE_ENV: production
+      # Ajouter vos credentials API ici ou via un fichier .env
+      SHOPIFY_SHOP_NAME: ${SHOPIFY_SHOP_NAME}
+      SHOPIFY_ACCESS_TOKEN: ${SHOPIFY_ACCESS_TOKEN}
+      WOOCOMMERCE_URL: ${WOOCOMMERCE_URL}
+      WOOCOMMERCE_CONSUMER_KEY: ${WOOCOMMERCE_CONSUMER_KEY}
+      WOOCOMMERCE_CONSUMER_SECRET: ${WOOCOMMERCE_CONSUMER_SECRET}
+      ADOBE_COMMERCE_URL: ${ADOBE_COMMERCE_URL}
+      ADOBE_COMMERCE_ACCESS_TOKEN: ${ADOBE_COMMERCE_ACCESS_TOKEN}
+      PRESTASHOP_URL: ${PRESTASHOP_URL}
+      PRESTASHOP_API_KEY: ${PRESTASHOP_API_KEY}
+      SYNC_INTERVAL: ${SYNC_INTERVAL:-15}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
