@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { parseStringPromise } = require('xml2js');
 const Order = require('../models/Order');
 
 class PrestaShopConnector {
